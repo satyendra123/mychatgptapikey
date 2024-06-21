@@ -208,3 +208,75 @@ void audio_info(const char *info) {
   Serial.print("audio_info: "); Serial.println(info);
 }
 
+#EX-3 using micropython
+import network
+import urequests as requests
+import ujson as json
+from machine import UART, Pin
+import time
+
+# Wi-Fi credentials
+ssid = 'SmS_jiofi'
+password = 'sms123458956'
+chatgpt_token = 'Your_ChatGPT_Token'
+
+# Initialize UART
+uart = UART(0, baudrate=115200, tx=Pin(1), rx=Pin(3))
+
+def connect_wifi():
+    wlan = network.WLAN(network.STA_IF)
+    wlan.active(True)
+    wlan.disconnect()
+    wlan.connect(ssid, password)
+    while not wlan.isconnected():
+        time.sleep(1)
+        print(".", end="")
+    print("\nConnected to Wi-Fi")
+    print("IP address:", wlan.ifconfig()[0])
+
+def get_user_input():
+    print("Ask your Question: ", end="")
+    res = ""
+    while True:
+        if uart.any():
+            char = uart.read(1).decode()
+            if char == '\n':
+                break
+            res += char
+    return res.strip()
+
+def get_chatgpt_response(question):
+    url = "https://api.openai.com/v1/completions"
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {chatgpt_token}"
+    }
+    payload = {
+        "model": "text-davinci-003",
+        "prompt": question,
+        "temperature": 0,
+        "max_tokens": 100
+    }
+    response = requests.post(url, headers=headers, data=json.dumps(payload))
+    return response.json()
+
+def main():
+    connect_wifi()
+    
+    while True:
+        question = get_user_input()
+        question_json = f'"{question}"'
+        print(question_json)
+
+        try:
+            response = get_chatgpt_response(question)
+            answer = response["choices"][0]["text"].strip()
+            print("Answer:", answer)
+        except Exception as e:
+            print("Failed to get response:", e)
+        
+        print("Wait 10s before next round...")
+        time.sleep(10)
+
+if __name__ == "__main__":
+    main()
