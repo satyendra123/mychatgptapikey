@@ -216,9 +216,9 @@ from machine import UART, Pin
 import time
 
 # Wi-Fi credentials
-ssid = 'SmS_jiofi'
-password = 'sms123458956'
-chatgpt_token = 'Your_ChatGPT_Token'
+ssid = 'Airtel_tejv_3002'
+password = 'air73137'
+chatgpt_token = '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'
 
 # Initialize UART
 uart = UART(0, baudrate=115200, tx=Pin(1), rx=Pin(3))
